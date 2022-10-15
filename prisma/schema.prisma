@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+model Admins {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  phone     String
+  reservedRooms ReservedRooms[]
+  CheckedOutRooms CheckedOutRooms[]
+  creditCard CreditCard[]
+  tokens   tokens[]
+  Rooms    Rooms[]
+}
+model Customer {
+  id        String   @unique
+  email     String   @unique
+  name      String
+  phone    String
+  reserverdRooms ReservedRooms[]
+  CheckedOutRooms CheckedOutRooms[]
+  creditCard CreditCard[]
+}
+model Rooms{
+  id       Int      @id @default(autoincrement())
+  adminId Int
+  DayCost  Int
+  Description String
+  roomType RoomType
+  roomStatus RoomStatus
+  reservedRooms ReservedRooms[]
+  CheckedOutRooms CheckedOutRooms[]
+  admin Admins @relation(fields: [adminId], references: [id])
+}
+model ReservedRooms{
+  id        Int      @id @default(autoincrement())
+  customerId String
+  roomId   Int
+  adminId  Int
+  admin Admins @relation(fields: [adminId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+  room     Rooms   @relation(fields: [roomId], references: [id])
+  startAt DateTime
+  endAt DateTime @default(now())
+  // @@id([customerId, roomId, adminId])
+}
+model CreditCard{
+  id    Int    @id @default(autoincrement())
+  customerId String @unique
+  adminId  Int
+  creditType CreditType
+  creditNumber String
+  cvv String
+  expiryDate String
+  name String
+  address String
+  city String
+  state String
+  zip String
+  country String
+  email String
+  balance Int
+  customer Customer @relation(fields: [customerId], references: [id])
+  admin Admins @relation(fields: [adminId], references: [id])
+  // tokens   tokens[]
+}
+model CheckedOutRooms{
+  id  Int      @id @default(autoincrement())
+  customerId String
+  roomId Int
+  adminId Int
+  Cost Int
+  Feedback String
+  admin Admins @relation(fields: [adminId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+  room     Rooms   @relation(fields: [roomId], references: [id])
+  startAt DateTime
+  endAt DateTime @default(now())
+}
+model tokens {
+    id        Int      @id @default(autoincrement())
+    userId    Int
+    // creditId  Int
+    expiresAt DateTime
+    user Admins @relation(fields: [userId], references: [id])
+    // credit CreditCard @relation(fields: [creditId], references: [id])
+}
+enum RoomType{
+  single
+  double
+}
+enum RoomStatus{
+  available
+  reserved
+  disabled
+}
+enum CreditType{
+  mastercard
+  visa
+  americanexpress
+  dinersclub
+  discover
+  jcb
+}
